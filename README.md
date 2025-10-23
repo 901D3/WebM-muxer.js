@@ -2,6 +2,7 @@
 
 A simple and lightweight WebM muxer written in JS\
 Completely browser-based
+And it can be for noobs...
 
 # _**How to use**_
 
