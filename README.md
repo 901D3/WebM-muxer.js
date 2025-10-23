@@ -28,6 +28,7 @@ const chunks = []; // We will store added frames and header to this array
 
 For toBlob()
 ```
+// Using canvas as an example
 const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", <quality value>));
 const buffer = new Uint8Array(await blob.arrayBuffer());
 
