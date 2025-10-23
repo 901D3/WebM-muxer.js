@@ -55,6 +55,7 @@ encoder.configure({
   width: <width value>,
   height: <height value>,
   frameRate: <frame rate value>,
+  bitrate: <bitrate value>, // Maybe the knob for quality
 });
 
 const videoFrame = new VideoFrame(canvas, {
