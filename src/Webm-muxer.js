@@ -10,7 +10,7 @@
 
 "use strict";
 
-class WebmMuxer {
+class WebMMuxer {
   #width;
   #height;
   #frameRate;
