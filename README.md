@@ -81,10 +81,10 @@ const blob = muxer.finalize(array);
 
 ──────────
 
-Demo coming soon!
+Demo coming soon!\
 But it is used in my other web-based tools by the way
 
-Check out the source code!
+Check out the source code!\
 [github.com/901D3/WebM-muxer.js](https://github.com/901D3/WebM-muxer.js)
 
 
