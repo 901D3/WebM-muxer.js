@@ -77,8 +77,7 @@ encoder.close();
 
 ```
 // Finalizer will return a blob
-// We assume the blob in add frame for toBlob() is in a loop
-// and this finalizing is outside
+// We assume the blob in add frame for toBlob() is in a loop and this finalizing is outside
 const blob = muxer.finalize(array);
 ```
 
