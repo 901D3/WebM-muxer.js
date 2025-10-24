@@ -77,14 +77,14 @@ encoder.close();
 
 ```
 // Finalizer will return a blob
-// We assume the blob in add frame for toBlob() is in a loop and this finalizing is outside
+// We assume the `blob` variable in add frame for toBlob() is in a loop and this finalizing is outside
 const blob = muxer.finalize(array);
 ```
 
 ──────────
 
 Demo coming soon!\
-But it is used in my other web-based tools by the way
+But maybe the demo is hidden in my tools
 
 Check out the source code!\
 [github.com/901D3/WebM-muxer.js](https://github.com/901D3/WebM-muxer.js)
