@@ -1,6 +1,7 @@
 /**
  * A simple and lightweight WebM muxer
  * Uses VP8 WebP images or VP9 frames to mux into video
+ * v0.3.1
  *
  * https://github.com/901D3/WebM-muxer.js
  *
@@ -423,7 +424,6 @@ class WebMMuxer {
   /**
    *
    * @param {*} frame - Input WebP data, with header. **usually comes from toBlob()**
-   * @param {*} array - Destination array to write
    */
 
   addFrameFromBlobKeyFrame(frame) {
@@ -432,6 +432,20 @@ class WebMMuxer {
 
     const vp8Data = this.#extractVP8Frame(frame);
     this.makeSimpleBlock(vp8Data, relativeTime, true);
+  }
+
+  // New
+  /**
+   *
+   * @param {*} frame - Input WebP data, with header. **usually comes from toBlob()**
+   */
+
+  addFrameFromBlobInterFrame(frame) {
+    const timestampMs = (this.#frameCount * 1000) / this.#frameRate;
+    const relativeTime = Math.round(timestampMs - this.#clusterTimeCode);
+
+    const vp8Data = this.#extractVP8Frame(frame);
+    this.makeSimpleBlock(vp8Data, relativeTime, false);
   }
 
   // Updated
@@ -460,7 +474,6 @@ class WebMMuxer {
   /**
    *
    * @param {*} frame - Input WebP data, no header. **usually comes from WebCodecs**
-   * @param {*} array - Destination array to write
    */
 
   addFramePreEncodedKeyFrame(frame) {
@@ -468,6 +481,19 @@ class WebMMuxer {
     const relativeTime = Math.round(timestampMs - this.#clusterTimeCode);
 
     this.makeSimpleBlock(frame, relativeTime, true);
+  }
+
+  // New
+  /**
+   *
+   * @param {*} frame - Input WebP data, no header. **usually comes from WebCodecs**
+   */
+
+  addFramePreEncodedInterFrame(frame) {
+    const timestampMs = (this.#frameCount * 1000) / this.#frameRate;
+    const relativeTime = Math.round(timestampMs - this.#clusterTimeCode);
+
+    this.makeSimpleBlock(frame, relativeTime, false);
   }
 
   // Updated
