@@ -2,17 +2,18 @@
 
 A simple and lightweight WebM muxer written in JS\
 Completely browser-based!
-And it can be for noobs...
 
 # _**How to use**_
 
 You know how to link a js file so we gonna skip it
 
-## _**Constructor**_
-Remember to define an array literal variable for storing the data
+## _**~~Constructor~~**_
+
+WebM muxer is no longer a class, i switched to IIFE namespace style for performance and convenient\
+But it's signatures and functionalities is still the same
 
 ```
-const muxer = new WebMMuxer({
+WebMMuxer.init({
   codec: <only "vp8" or "vp9">,
   width: <width value>,
   height: <height value>,
@@ -29,11 +30,12 @@ const muxer = new WebMMuxer({
   colorPrimaries: <default to 1>,
   transferCharacteristics: <default to 1>,
 })
-
-const chunks = []; // We will store added frames and header to this array
 ```
 
-──────────
+Remember to define an array literal variable for storing the data
+```
+const chunks = []; // We will store added frames and header to this array
+```
 
 ## _**Adding frames**_
 
@@ -44,7 +46,7 @@ const chunks = []; // We will store added frames and header to this array
 const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", <quality value, HAS TO BE BELOW 0.9>));
 const buffer = new Uint8Array(await blob.arrayBuffer());
 
-muxer.addFrameFromBlob(buffer, chunks);
+WebMMuxer.addFrameFromBlob(buffer, chunks);
 ```
 
 ──────────
@@ -57,7 +59,7 @@ const encoder = new VideoEncoder({
   output: (chunk) => {
     const buffer = new Uint8Array(chunk.byteLength);
     chunk.copyTo(buffer);
-    muxer.addFramePreEncoded(buffer, chunks);
+    WebMMuxer.addFramePreEncoded(buffer, chunks);
   },
   error: (err) => console.error(err),
 });
@@ -90,7 +92,7 @@ encoder.close();
 ```
 // Finalizer will return a blob
 // We assume the `blob` variable in add frame for toBlob() is in a loop and this finalizing is outside
-const blob = muxer.finalize(array);
+const blob = WebMMuxer.finalize(array);
 ```
 
 ──────────
