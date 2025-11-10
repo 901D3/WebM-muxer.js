@@ -1,7 +1,7 @@
 /**
  * A simple and lightweight WebM muxer
  * Uses VP8 WebP images or VP9 frames to mux into video
- * v0.3.2
+ * v0.3.3
  *
  * https://github.com/901D3/WebM-muxer.js
  *
@@ -49,7 +49,7 @@ const WebMMuxer = (function () {
    * muxingApp or writingApp is null
    */
 
-  function _init(initSettings) {
+  const _init = (initSettings) => {
     if (!["vp8", "vp9"].includes(initSettings.codec)) throw new Error("Codec not supported: " + initSettings.codec);
 
     codec = initSettings.codec;
@@ -69,7 +69,7 @@ const WebMMuxer = (function () {
 
     muxingApp = initSettings.muxingApp ?? "WebM-muxer.js";
     writingApp = initSettings.writingApp ?? "WebM-muxer.js";
-  }
+  };
 
   /**
    *
@@ -77,9 +77,9 @@ const WebMMuxer = (function () {
    * @returns
    */
 
-  function stringToUTF8(input) {
+  const stringToUTF8 = (input) => {
     return new TextEncoder().encode(input);
-  }
+  };
 
   /**
    *
@@ -87,11 +87,11 @@ const WebMMuxer = (function () {
    * @returns
    */
 
-  function toFloat64Buffer(value) {
+  const toFloat64Buffer = (value) => {
     const buffer = new ArrayBuffer(8);
     new DataView(buffer).setFloat64(0, value, false);
     return new Uint8Array(buffer);
-  }
+  };
 
   /**
    *
@@ -99,7 +99,7 @@ const WebMMuxer = (function () {
    * @returns
    */
 
-  function toVINT(value) {
+  const toVINT = (value) => {
     if (value < 0) throw new Error("VINT cannot be negative");
 
     let length = 1;
@@ -119,7 +119,7 @@ const WebMMuxer = (function () {
 
     out[0] |= 1 << (8 - length);
     return out;
-  }
+  };
 
   /**
    *
@@ -127,7 +127,7 @@ const WebMMuxer = (function () {
    * @returns
    */
 
-  function arrayConcat(...arrays) {
+  const arrayConcat = (...arrays) => {
     const total = arrays.reduce((sum, a) => sum + a.length, 0);
     const out = new Uint8Array(total);
     let offset = 0;
@@ -136,7 +136,7 @@ const WebMMuxer = (function () {
       offset += arr.length;
     }
     return out;
-  }
+  };
 
   /**
    * Extract frame data from VP8 frames, ignoring VP8L and VP8X as both are not supported by WebM
@@ -145,36 +145,29 @@ const WebMMuxer = (function () {
    * @returns {array}
    */
 
-  function extractVP8Frame(webpData) {
-    if (String.fromCharCode(...webpData.subarray(0, 4)) !== "RIFF") {
+  const extractVP8Frame = (webpData) => {
+    if (webpData[0] !== 0x52 && webpData[1] !== 0x49 && webpData[2] !== 0x46 && webpData[3] !== 0x46) {
       throw new Error("Not a RIFF WebP file");
     }
 
-    let offset = 12;
-    while (offset < webpData.length - 8) {
+    for (let offset = 12, length = webpData.length - 8; offset < length; offset++) {
       const chunkId = String.fromCharCode(...webpData.subarray(offset, offset + 4));
       const chunkSize = new DataView(webpData.buffer, webpData.byteOffset + offset + 4, 4).getUint32(0, true);
       const chunkStart = offset + 8;
 
       if (chunkId === "VP8 ") return webpData.subarray(chunkStart, chunkStart + chunkSize);
-      else if (chunkId === "VP8L") {
-        throw new Error("Lossless VP8 is not supported: " + chunkId);
-      } else if (chunkId === "VP8X") {
-        throw new Error("Extended VP8 is not supported: " + chunkId);
-      }
-
-      offset += 8 + chunkSize + (chunkSize & 1);
+      else if (chunkId === "VP8L") throw new Error("Lossless VP8 is not supported: " + chunkId);
     }
 
     throw new Error("VP8 chunk not found in WebP data");
-  }
+  };
 
   /**
    *
    * @param {*} array
    */
 
-  function _makeEBMLHeader(array) {
+  const _makeEBMLHeader = (array) => {
     const temp = [];
 
     temp.push(Uint8Array.of(0x42, 0x86, 0x81, 0x01)); // EBMLVersion
@@ -188,14 +181,14 @@ const WebMMuxer = (function () {
     const ebmlHeaderBody = arrayConcat(...temp);
     const ebmlHeader = arrayConcat(Uint8Array.of(0x1a, 0x45, 0xdf, 0xa3), toVINT(ebmlHeaderBody.length), ebmlHeaderBody);
     array.push(ebmlHeader);
-  }
+  };
 
   /**
    *
    * @param {*} array
    */
 
-  function _makeSegmentInfo(array) {
+  const _makeSegmentInfo = (array) => {
     const temp = [];
 
     // TimecodeScale
@@ -217,27 +210,27 @@ const WebMMuxer = (function () {
     const segmentInfoBody = arrayConcat(...temp);
     const segmentInfo = arrayConcat(Uint8Array.of(0x15, 0x49, 0xa9, 0x66), toVINT(segmentInfoBody.length), segmentInfoBody);
     array.push(segmentInfo);
-  }
+  };
 
   /**
    *
    * @param {*} array
    */
 
-  function _makeStartSegment(array) {
+  const _makeStartSegment = (array) => {
     const segmentHeader = arrayConcat(
       Uint8Array.of(0x18, 0x53, 0x80, 0x67),
       Uint8Array.of(0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff)
     );
     array.push(segmentHeader);
-  }
+  };
 
   /**
    *
    * @param {*} array
    */
 
-  function _makeTrackEntry(array) {
+  const _makeTrackEntry = (array) => {
     const temp = [];
 
     // TrackNumber
@@ -297,7 +290,7 @@ const WebMMuxer = (function () {
     const tracks = arrayConcat(Uint8Array.of(0x16, 0x54, 0xae, 0x6b), toVINT(trackEntry.length), trackEntry);
 
     array.push(tracks);
-  }
+  };
 
   /**
    *
@@ -305,7 +298,7 @@ const WebMMuxer = (function () {
    * @param {*} array
    */
 
-  function _makeClusterStart(timecodeMs, array) {
+  const _makeClusterStart = (timecodeMs, array) => {
     // 4 bytes
     const timecodeElement = arrayConcat(
       Uint8Array.of(0xe7),
@@ -323,7 +316,7 @@ const WebMMuxer = (function () {
     // Flush the old one
     blockChunks = [];
     clusterFrameCount = 0;
-  }
+  };
 
   /**
    *
@@ -332,7 +325,7 @@ const WebMMuxer = (function () {
    * @param {*} keyframe
    */
 
-  function _makeSimpleBlock(frame, relativeTime, keyframe) {
+  const _makeSimpleBlock = (frame, relativeTime, keyframe) => {
     const temp = [];
 
     temp.push(Uint8Array.of(0xa3));
@@ -351,7 +344,7 @@ const WebMMuxer = (function () {
 
     frameCount++;
     clusterFrameCount++;
-  }
+  };
 
   /**
    * A wrapper for writing header to the destination array
@@ -360,19 +353,19 @@ const WebMMuxer = (function () {
    *
    */
 
-  function _writeHeader(array) {
+  const _writeHeader = (array) => {
     _makeEBMLHeader(array);
     _makeStartSegment(array);
     _makeSegmentInfo(array);
     _makeTrackEntry(array);
-  }
+  };
 
-  function _newCluster(array) {
+  const _newCluster = (array) => {
     const timestampMs = (frameCount * 1000) / frameRate;
 
     _makeClusterStart(clusterTimeCode, array);
     clusterTimeCode = Math.round(timestampMs);
-  }
+  };
 
   /**
    *
@@ -380,7 +373,7 @@ const WebMMuxer = (function () {
    * @param {*} array - Destination array to write
    */
 
-  function _addFrameFromBlob(frame, array) {
+  const _addFrameFromBlob = (frame, array) => {
     const timestampMs = (frameCount * 1000) / frameRate;
 
     if (clusterFrameCount >= bufferSize) {
@@ -394,33 +387,33 @@ const WebMMuxer = (function () {
 
     const vp8Data = extractVP8Frame(frame);
     _makeSimpleBlock(vp8Data, relativeTime, keyframe);
-  }
+  };
 
   /**
    *
    * @param {*} frame - Input WebP data, with header. **usually comes from toBlob()**
    */
 
-  function _addFrameFromBlobKeyFrame(frame) {
+  const _addFrameFromBlobKeyFrame = (frame) => {
     const timestampMs = (frameCount * 1000) / frameRate;
     const relativeTime = Math.round(timestampMs - clusterTimeCode);
 
     const vp8Data = extractVP8Frame(frame);
     _makeSimpleBlock(vp8Data, relativeTime, true);
-  }
+  };
 
   /**
    *
    * @param {*} frame - Input WebP data, with header. **usually comes from toBlob()**
    */
 
-  function _addFrameFromBlobInterFrame(frame) {
+  const _addFrameFromBlobInterFrame = (frame) => {
     const timestampMs = (frameCount * 1000) / frameRate;
     const relativeTime = Math.round(timestampMs - clusterTimeCode);
 
     const vp8Data = extractVP8Frame(frame);
     _makeSimpleBlock(vp8Data, relativeTime, false);
-  }
+  };
 
   /**
    *
@@ -428,7 +421,7 @@ const WebMMuxer = (function () {
    * @param {*} array - Destination array to write
    */
 
-  function _addFramePreEncoded(frame, array) {
+  const _addFramePreEncoded = (frame, array) => {
     const timestampMs = (frameCount * 1000) / frameRate;
 
     if (clusterFrameCount >= bufferSize) {
@@ -441,33 +434,32 @@ const WebMMuxer = (function () {
     const keyframe = clusterFrameCount === 0;
 
     _makeSimpleBlock(frame, relativeTime, keyframe);
-  }
+  };
 
   /**
    *
    * @param {*} frame - Input WebP data, no header. **usually comes from WebCodecs**
    */
 
-  function _addFramePreEncodedKeyFrame(frame) {
+  const _addFramePreEncodedKeyFrame = (frame) => {
     const timestampMs = (frameCount * 1000) / frameRate;
     const relativeTime = Math.round(timestampMs - clusterTimeCode);
 
     _makeSimpleBlock(frame, relativeTime, true);
-  }
+  };
 
   /**
    *
    * @param {*} frame - Input WebP data, no header. **usually comes from WebCodecs**
    */
 
-  function _addFramePreEncodedInterFrame(frame) {
+  const _addFramePreEncodedInterFrame = (frame) => {
     const timestampMs = (frameCount * 1000) / frameRate;
     const relativeTime = Math.round(timestampMs - clusterTimeCode);
 
     _makeSimpleBlock(frame, relativeTime, false);
-  }
+  };
 
-  // Updated
   /**
    *
    * @param {*} array - Input array for finalizing
@@ -477,7 +469,7 @@ const WebMMuxer = (function () {
    * @returns {Blob}
    */
 
-  function _finalize(array) {
+  const _finalize = (array) => {
     if (blockChunks.length) _makeClusterStart(clusterTimeCode, array);
 
     // Only write headers after finish adding frame so we can calculate SegmentDuration
@@ -486,7 +478,7 @@ const WebMMuxer = (function () {
 
     // Blob() already handles the array concatenation
     return new Blob([...header, ...array]);
-  }
+  };
 
   return {
     init: _init,
