@@ -51,42 +51,6 @@ WebMMuxer.addFrameFromBlob(buffer, chunks);
 
 ──────────
 
-### For WebCodecs
-
-```
-// Example VideoEncoder
-const encoder = new VideoEncoder({
-  output: (chunk) => {
-    const buffer = new Uint8Array(chunk.byteLength);
-    chunk.copyTo(buffer);
-    WebMMuxer.addFramePreEncoded(buffer, chunks);
-  },
-  error: (err) => console.error(err),
-});
-
-
-encoder.configure({
-  codec: "vp09",
-  width: <width value>,
-  height: <height value>,
-  frameRate: <frame rate value>,
-  bitrate: <bitrate value>, // Maybe it is the knob for quality
-});
-
-const videoFrame = new VideoFrame(canvas, {
-  timestamp: null,
-});
-
-encoder.encode(videoFrame, {keyframe: true});
-videoFrame.close();
-
-// When done adding frames
-await encoder.flush();
-encoder.close();
-```
-
-──────────
-
 ### Finalizing
 
 ```
@@ -97,8 +61,7 @@ const blob = WebMMuxer.finalize(array);
 
 ──────────
 
-Demo coming soon!\
-But maybe the demo is hidden in my tools
+Demos is hidden in my other stuff
 
 Check out the source code!\
 [github.com/901D3/WebM-muxer.js](https://github.com/901D3/WebM-muxer.js)
